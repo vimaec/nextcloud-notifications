@@ -26,8 +26,12 @@ use OCA\Notifications\App;
 use OCA\Notifications\Capabilities;
 use OCA\Notifications\Handler;
 use OCA\Notifications\Notifier\AdminNotifications;
+use OCA\Notifications\Notifier\WorkflowNotifications;
+use OCA\Notifications\Workflow\Operation;
 use OCP\AppFramework\IAppContainer;
 use OCP\Util;
+use OCP\WorkflowEngine\IManager;
+use Symfony\Component\EventDispatcher\GenericEvent;
 
 class Application extends \OCP\AppFramework\App {
 	public function __construct() {
@@ -47,6 +51,7 @@ class Application extends \OCP\AppFramework\App {
 		$this->registerAdminNotifications();
 		$this->registerUserInterface();
 		$this->registerUserDeleteHook();
+		$this->registerWorkflow();
 	}
 
 	protected function registerNotificationApp(): void {
@@ -60,6 +65,10 @@ class Application extends \OCP\AppFramework\App {
 			->getServer()
 			->getNotificationManager()
 			->registerNotifierService(AdminNotifications::class);
+		$this->getContainer()
+			->getServer()
+			->getNotificationManager()
+			->registerNotifierService(WorkflowNotifications::class);
 	}
 
 	protected function registerUserInterface(): void {
@@ -79,6 +88,14 @@ class Application extends \OCP\AppFramework\App {
 
 	protected function registerUserDeleteHook(): void {
 		Util::connectHook('OC_User', 'post_deleteUser', $this, 'deleteUser');
+	}
+
+	protected function registerWorkflow(): void {
+		\OC::$server->getEventDispatcher()->addListener(IManager::EVENT_NAME_REG_OPERATION, function (GenericEvent $event) {
+			$operation = \OC::$server->query(Operation::class);
+			$event->getSubject()->registerOperation($operation);
+			//\OC_Util::addScript('workflow_pdf_converter', 'admin');
+		});
 	}
 
 	public function deleteUser(array $params): void {
