@@ -22,7 +22,9 @@
 namespace OCA\Notifications;
 
 
+use OCA\Notifications\Event\BroadcastEvent;
 use OCA\Notifications\Exceptions\NotificationNotFoundException;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\Notification\IApp;
 use OCP\Notification\INotification;
 
@@ -31,10 +33,13 @@ class App implements IApp {
 	protected $handler;
 	/** @var Push */
 	protected $push;
+	/** @var IEventDispatcher */
+	private $dispatcher;
 
-	public function __construct(Handler $handler, Push $push) {
+	public function __construct(Handler $handler, Push $push, IEventDispatcher $dispatcher) {
 		$this->handler = $handler;
 		$this->push = $push;
+		$this->dispatcher = $dispatcher;
 	}
 
 	/**
@@ -51,6 +56,9 @@ class App implements IApp {
 		} catch (NotificationNotFoundException $e) {
 			throw new \InvalidArgumentException('Error while preparing push notification');
 		}
+
+		$event = new BroadcastEvent($notification->getUser());
+		$this->dispatcher->dispatchTyped($event);
 	}
 
 	/**

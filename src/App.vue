@@ -53,6 +53,7 @@
 <script>
 import Notification from './Components/Notification'
 import axios from '@nextcloud/axios'
+import { subscribe } from '@nextcloud/event-bus'
 
 export default {
 	name: 'App',
@@ -106,12 +107,14 @@ export default {
 
 		this.checkWebNotificationPermissions()
 
+		subscribe('notifications', this._backgroundFetch)
+
 		// Initial call to the notification endpoint
 		this._fetch()
 
 		// Setup the background checker
 		if (OC.config.session_keepalive) {
-			this.interval = setInterval(this._backgroundFetch.bind(this), this.pollInterval)
+			// this.interval = setInterval(this._backgroundFetch.bind(this), this.pollInterval)
 		}
 	},
 
