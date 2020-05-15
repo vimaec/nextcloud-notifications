@@ -26,6 +26,7 @@ use OCA\Notifications\App;
 use OCA\Notifications\Capabilities;
 use OCA\Notifications\Listener\UserDeletedListener;
 use OCA\Notifications\Notifier\AdminNotifications;
+use OCA\Notifications\Push\WebPushValidator;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -49,6 +50,7 @@ class Application extends \OCP\AppFramework\App implements IBootstrap {
 		});
 
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
+		$context->registerPushAccessValidator(WebPushValidator::class);
 	}
 
 	public function boot(IBootContext $context): void {
